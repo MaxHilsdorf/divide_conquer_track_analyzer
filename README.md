@@ -22,7 +22,7 @@ This module assumes a model on smaller segments is already trained (See my audio
 If you have a keras model trained on image representations (!) of short audio snippets (like spectrograms or MFCCs) and have an MP3 file you want to make a divide & conquer based prediction for, it is highly likely that you can apply this tool to your problem. It is built to allow you to add your own functionalities for feature extraction or data processing.
 
 ### 1.3. What Is Currently Implemented?
-Currently, the track analyzer has all the functionality to predict with CNN or CRNN models which where trained on mel spectrograms with values normalized to the interval [0+$\Delta$,1+$\Delta$]. However, it is very easy to add your own functionalities, as laid out in section 4.
+Currently, the track analyzer has all the functionality to predict with CNN or CRNN models which where trained on mel spectrograms with values normalized to the interval [0+x,1+x] with any real number x. However, it is very easy to add your own functionalities, as laid out in section 4.
 
 
 ## 2. Requirements
