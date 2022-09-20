@@ -71,7 +71,7 @@ class Track:
 class TrackSegment:
     """Represents a single segment within a track"""
 
-    def __init__(self, track: Track, timestamp: tuple, feature_extractor: AudioFeatureExtractor):
+    def __init__(self, track: Track, timestamp: tuple, feature_extractor: FeatureExtractor):
 
                 self.timestamp = timestamp
                 self.audio_segment = track.audio_segment[timestamp[0]:timestamp[1]]
