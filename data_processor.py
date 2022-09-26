@@ -6,8 +6,6 @@ def minmax_normalization(data: np.ndarray, delta: int=0):
     """Normalizes the data to the interval [0+delta, 1+delta]"""
     
     return (data - data.min()) / (data.max() - data.min()) + delta
-    
-
 
 ## Processor classes ##
 
@@ -27,7 +25,7 @@ class MelspecCNNProcessor(DataProcessor):
     -   dimension expansion for CNN "color" channel
     """
     
-    def __init__(self, delta=0.01):
+    def __init__(self, delta=0.001):
         self.delta = delta
     
     def process_data(self, data:np.ndarray):
@@ -47,12 +45,12 @@ class MelspecCRNNProcessor(DataProcessor):
     -   ax swap to put time dimension in second place
     """
     
-    def __init__(self, delta=0.01):
+    def __init__(self, delta=0.001):
         self.delta = delta
     
     def process_data(self, data:np.ndarray):
         
-        data = minmax_normalization(data, self.delta)
+        data = minmax_normalization(data, delta=self.delta)
         data = np.expand_dims(data, 3)
         data = np.swapaxes(data, 1, 2)
         
