@@ -12,7 +12,6 @@ class FeatureExtractor:
     def compute_feature(self, waveform: np.ndarray):
         pass
     
-    
 class MelspecExtractor(FeatureExtractor):
     """Extractor for mel spectrograms using librosa"""
     
@@ -27,8 +26,8 @@ class MelspecExtractor(FeatureExtractor):
     
     def compute_feature(self, waveform: np.ndarray):
         
-        melspec = spectrogram = librosa.feature.melspectrogram(y=waveform, sr=self.sr, n_fft=self.n_fft,
-                                                          hop_length=self.hop_length, n_mels=self.n_mels)
+        melspec = librosa.feature.melspectrogram(y=waveform, sr=self.sr, n_fft=self.n_fft,
+                                                    hop_length=self.hop_length, n_mels=self.n_mels)
         melspec = librosa.power_to_db(melspec, ref=np.max)
         
         return melspec.astype(self.data_type)
