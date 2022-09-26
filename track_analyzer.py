@@ -1,5 +1,7 @@
-
 from concurrent.futures import process
+#import librosa
+#from librosa.display import specshow
+import matplotlib.pyplot as plt
 from pydub import AudioSegment
 from feature_extractor import FeatureExtractor
 from data_processor import DataProcessor
@@ -8,13 +10,16 @@ import numpy as np
 
 ## HELPER FUNCTIONS ##
 
-def zero_pad(data: np.ndarray, target_shape: tuple, pad_back=True):
+def do_padding(data: np.ndarray, pad_val: float, target_shape: tuple, pad_back=True):
     """Pads an array with zeros until a target shape is reached"""
     
     paddings = ()
+    #print("Spec shape current:", data.shape)
+    #print("Desired spec shape:", target_shape)
     for i, shape in enumerate(data.shape):
         
         if shape < target_shape[i]:
+            #print(f"dim {i} is padded")
             
             diff = target_shape[i] - shape
             
@@ -26,7 +31,7 @@ def zero_pad(data: np.ndarray, target_shape: tuple, pad_back=True):
         else:
             paddings += ((0,0),)
                 
-    return np.pad(data, paddings)
+    return np.pad(data, paddings, mode="constant", constant_values=pad_val)
 
 
 ## CLASSES ##
@@ -43,7 +48,12 @@ class Track:
             self.name = name
         else:
             self.name = ".".join(self.mp3_path.split("/")[-1].split(".")[:-1])
-        self.audio_segment = AudioSegment.from_mp3(self.mp3_path)
+        
+        #audio, _ = librosa.load(self.mp3_path, sr=sr)
+        #audio_bytes = audio.tobytes()
+        #self.audio_segment = AudioSegment(data=audio_bytes, sample_width=2, frame_rate=sr, channels=1)
+        
+        self.audio_segment = AudioSegment.from_file(self.mp3_path, "mp3", frame_rate=sr)
         self.duration = int(self.audio_segment.duration_seconds) # round down
         
         # Snippet processing information
@@ -59,7 +69,7 @@ class Track:
 
         # Compute timestamps
         slice_timestamps =[(0, self.slice_duration*1000)] # add first sample
-        for i in range(self.slice_duration-self.overlap, self.duration-self.overlap, self.slice_duration-self.overlap): # add the rest
+        for i in range(self.slice_duration-self.overlap, self.duration-self.slice_duration+1, self.slice_duration-self.overlap): # add the rest
             slice_timestamps.append((i*1000, ((i+self.slice_duration)*1000)))
 
         # Build Segments
@@ -75,7 +85,7 @@ class TrackSegment:
 
                 self.timestamp = timestamp
                 self.audio_segment = track.audio_segment[timestamp[0]:timestamp[1]]
-                self.waveform = np.array(self.audio_segment.get_array_of_samples(), dtype="float32")
+                self.waveform = np.array(self.audio_segment.get_array_of_samples(), dtype="float16")
                 self.feature = feature_extractor.compute_feature(waveform=self.waveform)
 
 class TrackAnalyzer:
@@ -89,6 +99,13 @@ class TrackAnalyzer:
         self.processor = processor
         
         self.features = self.get_feature_matrix()
+        #print("Track name:", self.track.name)
+        #print("Given Features shape:", self.feature_shape)
+        #print("True Features shape:", self.features.shape)
+        #print("Features min max:", self.features.min(), self.features.max())
+        #print(self.features[-1,:,:,0])
+        #specshow(self.features[0,:,:,0].T)
+        #plt.show()
 
     def get_feature_matrix(self):
 
@@ -101,12 +118,14 @@ class TrackAnalyzer:
     
             # Apply zero-padding if shape does not fit
             if feature.shape != features.shape[1:]:
-                feature = zero_pad(data=feature, target_shape=features.shape[1:], pad_back=True)
+                feature = do_padding(data=feature, pad_val=-80, target_shape=self.feature_shape, pad_back=True)
             
             features[i,:,:] = feature
+        #print("Feature shape before processing:", features.shape)
 
         # Process features
         features = self.processor.process_data(features)
+        #print("Feature shape after processing:", features.shape)
 
         return features
         
